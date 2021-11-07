@@ -1,7 +1,13 @@
 // /opt/homebrew/Cellar/cc65/2.19/share/cc65/include
+// make -f makefile-vic20
+// cl65 -t vic20 -I ../../cc65-floatlib/ --lib-path ../../cc65-floatlib -O textsine.c runtime.lib
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <vic20.h>
+
+#include <float.h>
+#include <math.h>
 
 #define XOFST 10
 #define YOFST 12
@@ -9,7 +15,7 @@
 #define YPX 23
 
 //#define XSCLE (XPX/640.0f)
-#define YSCLE 10
+//#define YSCLE 10
 
 // https://github.com/mrdudz/cc65-floatlib/blob/master/float.h
 
@@ -22,17 +28,36 @@ void plot(int x, int y, char c, char color) {
 }
 
 int main(int _argc, char **_argv) {
-//  const float xscle=((float)XPX)/640.0f;
-//  const int x_limit = (int) ((XPX-1) / XSCLE);
+  const float xofst=itof(XOFST);
+  const float yofst=itof(YOFST);
+  const float xscle=fdiv(itof(XPX), itof(640));
+  const float yscle=itof(10);
+  const float radfc=fdiv(fatn(itof(1)),itof(45));
+  const float radfc_xscle=fdiv(radfc,xscle);
+  const int x_limit = ftoi(fdiv(itof(XPX), xscle));
   int x;
   int y;
+
   char *upper_lower=(char*)53272U;
   (*upper_lower)=21;
-  for(x=0; x <= XPX; x++) {
+  for(x=0; x < XPX; x++) {
     plot(x,YOFST,(char)'Q', (char)5);
   }
   for(y=0; y <= YPX; y++) {
     plot(XOFST,y,(char)'Q', (char)5);
+  }
+  for(x=0; x < x_limit; x++) {
+    float xi=fmul(itof(x),xscle);
+    float yi=fadd(
+        fmul(yscle,
+          fmul(
+            fcos(fmul(fsub(xi,xofst),radfc_xscle)),
+            itof(-1)
+            )
+          ),
+        yofst);
+    // yscle *
+    plot(ftoi(xi), ftoi(yi), (char)'Q', (char)4);
   }
   return EXIT_SUCCESS;
 }
