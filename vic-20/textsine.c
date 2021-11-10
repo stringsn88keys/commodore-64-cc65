@@ -26,6 +26,16 @@ void plot(int x, int y, char c, char color) {
   *color_ptr = color;
   *char_ptr = c;
 }
+// https://en.wikipedia.org/wiki/PETSCII
+void graphics() {
+  __asm__ ("lda #$8e"); // chr$(14 + 128)
+  __asm__ ("jsr $ffd2"); // the CHROUT subroutine
+}
+
+void cls() {
+  __asm__ ("lda #$93"); // the screen clear character
+  __asm__ ("jsr $ffd2"); // the CHROUT subroutine
+}
 
 int main(int _argc, char **_argv) {
   const float xofst=itof(XOFST);
@@ -38,8 +48,14 @@ int main(int _argc, char **_argv) {
   int x;
   int y;
 
-  char *upper_lower=(char*)53272U;
-  (*upper_lower)=21;
+  char *ptr=(char*)36879U; // black border black back
+  (*ptr)=8;
+  ptr=(char*)0xc7; // reverse video
+  (*ptr)=1;
+
+  graphics();
+  cls();
+
   for(x=0; x < XPX; x++) {
     plot(x,YOFST,(char)'Q', (char)5);
   }
@@ -57,7 +73,7 @@ int main(int _argc, char **_argv) {
           ),
         yofst);
     // yscle *
-    plot(ftoi(xi), ftoi(yi), (char)'Q', (char)4);
+    plot(ftoi(xi), ftoi(yi), (char)'Q', (char)1);
   }
   return EXIT_SUCCESS;
 }
